@@ -5,6 +5,8 @@ interface BoxProps {
   onclick: () => void;
 }
 
+// This is an example for a component (delete before build)
+
 const Box = ({ content, onclick }: BoxProps) => {
   return (
     <div>

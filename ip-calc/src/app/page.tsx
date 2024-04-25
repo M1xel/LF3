@@ -11,9 +11,9 @@ export default function Home() {
       <div>
         <Box onclick={logFunction} content='Alt + F4' />
         {/*Example Component, pls remove before Build*/}
-        <InputField content='IP-Address' maxLength={15}/>
-        <InputField content='CIDR' maxLength={2} />
-
+        <InputField content='IP-Address' maxLength={15} providedRegex={/^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/}/>
+        <InputField content='CIDR' maxLength={2} providedRegex={/\b([1-9]|[12][0-9]|3[0-2])\b/}/>
+        <InputField content="Hosts" maxLength={6} providedRegex={undefined}/>
       </div>
     </main>
   );

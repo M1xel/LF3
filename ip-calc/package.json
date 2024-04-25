@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "ip-subnet-calculator": "^2.0.1",
+    "iput": "^2.0.1",
     "next": "14.2.2",
     "react": "^18",
     "react-dom": "^18"

@@ -17,16 +17,17 @@ const InputField = ({content, maxLength, providedRegex}: InputFieldProps) => {
         return true;
     };
 
+    //[Debug] some value printing
     if (checkRegex(value, providedRegex)){
         console.log(content, value);
-        console.log(value.value)
     }
+
 
     return (
         <div>
             <label> Input {content}:</label>
-            <input id={`${content}-input-field`} maxLength={maxLength} value={value} onChange={(changeValue) => setvalue(changeValue.target.value)}></input>
-            <label id={`invalid-${content}`}>{checkRegex(value, providedRegex) ? '' : 'Invalid input'}</label>
+            <input maxLength={maxLength} value={value} onChange={(changeValue) => setvalue(changeValue.target.value)}></input>
+            <label>{checkRegex(value, providedRegex) ? '' : 'Invalid input'}</label>
         </div>
     );
 };

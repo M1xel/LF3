@@ -40,6 +40,11 @@ export default function Home() {
     return ip.match(/^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/);
   }
 
+
+
+  let netzAddressen: number[] = Array.from({ length: 16 }, (_, i) => i);
+  let broadcastAddressen: number[] = Array.from({ length: 16 }, (_, i) => i);
+
   //Get all nessesary Information about the given IP Address and Space
   if (isValidIp(ipAddress)) {
     const result = IPSubnetCalculator.calculateSubnetMask(ipAddress, cidr);
@@ -47,20 +52,43 @@ export default function Home() {
     if (result) {
       const { ipLowStr, ipHighStr, ipLow, ipHigh, prefixSize, prefixMaskStr } =
         result;
-      /*       console.log(
-        ipLowStr,
-        ipHighStr,
-        ipLow,
-        ipHigh,
-        prefixSize,
-        prefixMaskStr
-      ); */
 
       let i;
+      let newIpHigh = ipLow;
+
+
       for (i = 0; i < amountNetworks; i++) {
+        //Probably not needed as ip address have to be 0 at the end (most likely)
+        if (i === 0) newIpHigh = ipLow;
         const hosts = networks[i].number;
-        console.log(hosts);
+
+        //[DEBUG] Test output
+        console.log(i, ": Netz Addressen: ", IPSubnetCalculator.toString(newIpHigh));
+        netzAddressen[i] = newIpHigh;
+
+        if (hosts > 0 && hosts < 2) {
+          newIpHigh += 2;
+        } else if (hosts > 1 && hosts < 4) {
+          newIpHigh += 4;
+        } else if (hosts > 3 && hosts < 8) {
+          newIpHigh += 8;
+        } else if (hosts > 7 && hosts < 16) {
+          newIpHigh += 16;
+        } else if (hosts > 15 && hosts < 32) {
+          newIpHigh += 32;
+       } else if (hosts > 31 && hosts < 64) {
+          newIpHigh += 64;
+        } else if (hosts > 63 && hosts < 128) {
+          newIpHigh += 128;
+        } else if (hosts > 127 && hosts < 256) {
+          newIpHigh += 256;
+        }
+        //[DEBUG] Test output
+        console.log(i, ": Broadcast Address: ", IPSubnetCalculator.toString(newIpHigh-1));
+        broadcastAddressen[i] = newIpHigh-1;
+
       }
+      console.log(newIpHigh, IPSubnetCalculator.toString(newIpHigh));
     }
   }
 
@@ -103,6 +131,30 @@ export default function Home() {
               </div>
             );
           })}
+        </div>
+        <div>
+          <table>
+            <thead>
+              <tr>
+                <th>Network</th>
+                <th>Netz Address</th>
+                <th>Broadcast Address</th>
+                <th>Nutzbare IP-Addressen</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: amountNetworks }).map((_, i) => {
+                return (
+                  <tr key={i}>
+                    <td>{i + 1}</td>
+                    <td>{IPSubnetCalculator.toString(netzAddressen[i])}</td>
+                    <td>{IPSubnetCalculator.toString(broadcastAddressen[i])}</td>
+                    <td>{IPSubnetCalculator.toString(netzAddressen[i]+1)}-{IPSubnetCalculator.toString(broadcastAddressen[i]-1)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </main>

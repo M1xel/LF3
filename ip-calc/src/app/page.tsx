@@ -70,28 +70,28 @@ export default function Home() {
         if (hosts > 0 && hosts < 2) {
           newIpHigh += 2;
           cidrArray[i] = 31;
-        } else if (hosts > 1 && hosts < 4) {
+        } else if (hosts > 1 && hosts < 3) {
           newIpHigh += 4;
           cidrArray[i] = 30;
-        } else if (hosts > 3 && hosts < 8) {
+        } else if (hosts > 2 && hosts < 7) {
           newIpHigh += 8;
           cidrArray[i] = 29;
-        } else if (hosts > 7 && hosts < 16) {
+        } else if (hosts > 6 && hosts < 15) {
           newIpHigh += 16;
           cidrArray[i] = 28;
-        } else if (hosts > 15 && hosts < 32) {
+        } else if (hosts > 14 && hosts < 31) {
           newIpHigh += 32;
           cidrArray[i] = 27;
-       } else if (hosts > 31 && hosts < 64) {
+       } else if (hosts > 30 && hosts < 63) {
           newIpHigh += 64;
           cidrArray[i] = 26;
-        } else if (hosts > 63 && hosts < 128) {
+        } else if (hosts > 62 && hosts < 127) {
           newIpHigh += 128;
           cidrArray[i] = 25;
-        } else if (hosts > 127 && hosts < 256) {
+        } else if (hosts > 126 && hosts < 255) {
           newIpHigh += 256;
           cidrArray[i] = 24;
-        } else if (hosts > 255 && hosts < 512) {
+        } else if (hosts > 254 && hosts < 511) {
           newIpHigh += 512;
           cidrArray[i] = 23;
         }

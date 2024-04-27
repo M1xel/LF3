@@ -66,6 +66,7 @@ export default function Home() {
         console.log(i, ": Netz Addressen: ", IPSubnetCalculator.toString(newIpHigh));
         netzAddressen[i] = newIpHigh;
 
+        //yeah just dont ask anymore about this
         if (hosts > 0 && hosts < 2) {
           newIpHigh += 2;
         } else if (hosts > 1 && hosts < 4) {
@@ -83,6 +84,7 @@ export default function Home() {
         } else if (hosts > 127 && hosts < 256) {
           newIpHigh += 256;
         }
+
         //[DEBUG] Test output
         console.log(i, ": Broadcast Address: ", IPSubnetCalculator.toString(newIpHigh-1));
         broadcastAddressen[i] = newIpHigh-1;
@@ -149,8 +151,13 @@ export default function Home() {
                     <td>{i + 1}</td>
                     <td>{IPSubnetCalculator.toString(netzAddressen[i])}</td>
                     <td>{IPSubnetCalculator.toString(broadcastAddressen[i])}</td>
-                    <td>{IPSubnetCalculator.toString(netzAddressen[i]+1)}-{IPSubnetCalculator.toString(broadcastAddressen[i]-1)}</td>
-                  </tr>
+                    <td>
+                      {isValidIp(IPSubnetCalculator.toString(netzAddressen[i])) && netzAddressen[i] > 0 && isValidIp(IPSubnetCalculator.toString(broadcastAddressen[i])) && broadcastAddressen[i] > 0 
+                        ? `${IPSubnetCalculator.toString(netzAddressen[i]+1)}-${IPSubnetCalculator.toString(broadcastAddressen[i]-1)}` 
+                        : "Invalid IP"}
+                    </td>
+{/*                     <td>{IPSubnetCalculator.toString(netzAddressen[i]+1)}-{IPSubnetCalculator.toString(broadcastAddressen[i]-1)}</td>
+ */}                  </tr>
                 );
               })}
             </tbody>

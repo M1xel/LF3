@@ -44,6 +44,7 @@ export default function Home() {
 
   let netzAddressen: number[] = Array.from({ length: 16 }, (_, i) => i);
   let broadcastAddressen: number[] = Array.from({ length: 16 }, (_, i) => i);
+  let cidrArray: number[] = Array.from({ length: 16 }, (_, i) => i);
 
   //Get all nessesary Information about the given IP Address and Space
   if (isValidIp(ipAddress)) {
@@ -54,8 +55,7 @@ export default function Home() {
         result;
 
       let i;
-      let newIpHigh = ipLow;
-
+      let newIpHigh = result.ipLow;
 
       for (i = 0; i < amountNetworks; i++) {
         //Probably not needed as ip address have to be 0 at the end (most likely)
@@ -69,20 +69,31 @@ export default function Home() {
         //yeah just dont ask anymore about this
         if (hosts > 0 && hosts < 2) {
           newIpHigh += 2;
+          cidrArray[i] = 31;
         } else if (hosts > 1 && hosts < 4) {
           newIpHigh += 4;
+          cidrArray[i] = 30;
         } else if (hosts > 3 && hosts < 8) {
           newIpHigh += 8;
+          cidrArray[i] = 29;
         } else if (hosts > 7 && hosts < 16) {
           newIpHigh += 16;
+          cidrArray[i] = 28;
         } else if (hosts > 15 && hosts < 32) {
           newIpHigh += 32;
+          cidrArray[i] = 27;
        } else if (hosts > 31 && hosts < 64) {
           newIpHigh += 64;
+          cidrArray[i] = 26;
         } else if (hosts > 63 && hosts < 128) {
           newIpHigh += 128;
+          cidrArray[i] = 25;
         } else if (hosts > 127 && hosts < 256) {
           newIpHigh += 256;
+          cidrArray[i] = 24;
+        } else if (hosts > 255 && hosts < 512) {
+          newIpHigh += 512;
+          cidrArray[i] = 23;
         }
 
         //[DEBUG] Test output
@@ -140,6 +151,7 @@ export default function Home() {
               <tr>
                 <th>Network</th>
                 <th>Netz Address</th>
+                <th>CIDR</th>
                 <th>Broadcast Address</th>
                 <th>Nutzbare IP-Addressen</th>
               </tr>
@@ -150,6 +162,7 @@ export default function Home() {
                   <tr key={i}>
                     <td>{i + 1}</td>
                     <td>{IPSubnetCalculator.toString(netzAddressen[i])}</td>
+                    <td>{cidrArray[i]}</td>
                     <td>{IPSubnetCalculator.toString(broadcastAddressen[i])}</td>
                     <td>
                       {isValidIp(IPSubnetCalculator.toString(netzAddressen[i])) && netzAddressen[i] > 0 && isValidIp(IPSubnetCalculator.toString(broadcastAddressen[i])) && broadcastAddressen[i] > 0 

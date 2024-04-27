@@ -156,8 +156,7 @@ export default function Home() {
                         ? `${IPSubnetCalculator.toString(netzAddressen[i]+1)}-${IPSubnetCalculator.toString(broadcastAddressen[i]-1)}` 
                         : "Invalid IP"}
                     </td>
-{/*                     <td>{IPSubnetCalculator.toString(netzAddressen[i]+1)}-{IPSubnetCalculator.toString(broadcastAddressen[i]-1)}</td>
- */}                  </tr>
+                  </tr>
                 );
               })}
             </tbody>

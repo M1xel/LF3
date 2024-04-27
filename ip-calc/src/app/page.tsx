@@ -154,6 +154,7 @@ export default function Home() {
                 <th>CIDR</th>
                 <th>Broadcast Address</th>
                 <th>Nutzbare IP-Addressen</th>
+                <th>Anzahl Nutzbare IP-Addressen</th>
               </tr>
             </thead>
             <tbody>
@@ -162,11 +163,16 @@ export default function Home() {
                   <tr key={i}>
                     <td>{i + 1}</td>
                     <td>{IPSubnetCalculator.toString(netzAddressen[i])}</td>
-                    <td>{cidrArray[i]}</td>
+                    <td>/{cidrArray[i]}</td>
                     <td>{IPSubnetCalculator.toString(broadcastAddressen[i])}</td>
                     <td>
                       {isValidIp(IPSubnetCalculator.toString(netzAddressen[i])) && netzAddressen[i] > 0 && isValidIp(IPSubnetCalculator.toString(broadcastAddressen[i])) && broadcastAddressen[i] > 0 
                         ? `${IPSubnetCalculator.toString(netzAddressen[i]+1)}-${IPSubnetCalculator.toString(broadcastAddressen[i]-1)}` 
+                        : "Invalid IP"}
+                    </td>
+                    <td>
+                      {isValidIp(IPSubnetCalculator.toString(netzAddressen[i])) && netzAddressen[i] > 0 && isValidIp(IPSubnetCalculator.toString(broadcastAddressen[i])) && broadcastAddressen[i] > 0 
+                        ? broadcastAddressen[i] - netzAddressen[i] - 1 
                         : "Invalid IP"}
                     </td>
                   </tr>

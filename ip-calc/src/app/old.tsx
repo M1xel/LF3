@@ -3,12 +3,6 @@ import IPut from "iput";
 import { useEffect, useState } from "react";
 import * as IPSubnetCalculator from "ip-subnet-calculator";
 import NumberInput from "../components/NumberInput";
-import Network from "@/components/Network";
-
-interface Network {
-  id: string;
-  hosts: number;
-}
 
 export default function Home() {
   const [ipAddress, setIPAddress] = useState("");
@@ -16,7 +10,13 @@ export default function Home() {
   const [hosts, setHosts] = useState(0);
   const [amountNetworks, setAmountNetworks] = useState(1);
 
-  const [networks, setNetworks] = useState<Network[]>([]);
+  const [networks, setNetworks] = useState(
+    Array.from({ length: 16 }, (_, i) => {
+      return {
+        number: 0,
+      };
+    })
+  );
 
   //[DEBUG] Test output
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function Home() {
       for (i = 0; i < amountNetworks; i++) {
         //Probably not needed as ip address have to be 0 at the end (most likely)
         if (i === 0) newIpHigh = ipLow;
-        const hosts = networks[i].hosts;
+        const hosts = networks[i].number;
 
         //[DEBUG] Test output
         console.log(
@@ -114,44 +114,20 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div>
         <div>IP Address</div>
-        <div className="flex items-center">
-          <IPut onChange={setIPAddress} className="mr-2" />
-          <span className="mr-2">/</span>
-          <NumberInput onChange={setCIDR} value={cidr} max={32} />
-        </div>
+        <IPut onChange={setIPAddress} />
+        <div>{ipAddress}</div>
+        <div>CIDR</div>
+        <NumberInput onChange={setCIDR} value={cidr} max={32} />
         <div>Subnetmask:</div>
         <div>{subnetmask}</div>
-        <div className="border p-4 flex flex-col gap-4 rounded-xl">
-          {networks.map((network) => {
-            return (
-              <Network
-                onClose={() =>
-                  setNetworks(networks.filter(({ id }) => network.id !== id))
-                }
-                onChangeHosts={(v) => {
-                  setNetworks(
-                    networks.map((net) => {
-                      if (network.id === net.id) {
-                        return { hosts: v, id: net.id };
-                      }
-                      return net;
-                    })
-                  );
-                }}
-                hosts={network.hosts}
-                key={network.id}
-              />
-            );
-          })}
-          <button
-            className="w-full border"
-            onClick={() =>
-              setNetworks([...networks, { hosts: 0, id: crypto.randomUUID() }])
-            }
-          >
-            Add Network
-          </button>
-          {/*Array.from({ length: amountNetworks }).map((_, i) => {
+        <div>Amount Networks</div>
+        <NumberInput
+          onChange={setAmountNetworks}
+          value={amountNetworks}
+          max={16}
+        />
+        <div>
+          {Array.from({ length: amountNetworks }).map((_, i) => {
             return (
               <div key={i}>
                 <div>Hosts: Netz {i + 1}</div>
@@ -172,7 +148,7 @@ export default function Home() {
                 </div>
               </div>
             );
-          })*/}
+          })}
         </div>
         <div>
           <table>

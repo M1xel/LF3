@@ -13,6 +13,7 @@ export default function NumberInput(props: NumberInputProps) {
 
   return (
     <input
+      className="border border-gray-300 rounded px-2 py-1 w-20 h-9"
       type="text"
       value={dirtyValue}
       onChange={(e) => {

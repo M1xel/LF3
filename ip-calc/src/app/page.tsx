@@ -1,6 +1,6 @@
 "use client";
 import IPut from "iput";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import * as IPSubnetCalculator from "ip-subnet-calculator";
 import NumberInput from "../components/NumberInput";
 import Network from "@/components/Network";
@@ -11,12 +11,14 @@ interface Network {
 }
 
 export default function Home() {
-  const [ipAddress, setIPAddress] = useState("");
+  const [rawAddress, setIPAddress] = useState("");
   const [cidr, setCIDR] = useState(24);
   const [hosts, setHosts] = useState(0);
   const [amountNetworks, setAmountNetworks] = useState(1);
 
   const [networks, setNetworks] = useState<Network[]>([]);
+
+  const ipAddress = isValidIp(rawAddress) ? rawAddress : null;
 
   //[DEBUG] Test output
   useEffect(() => {
@@ -31,8 +33,8 @@ export default function Home() {
   //prefixMaskStr = Subnetmask
 
   //Calculate the Subnetmask
-  const subnetmask = isValidIp(ipAddress)
-    ? IPSubnetCalculator.calculateSubnetMask(ipAddress, cidr)?.prefixMaskStr
+  const subnetmask = isValidIp(rawAddress)
+    ? IPSubnetCalculator.calculateSubnetMask(rawAddress, cidr)?.prefixMaskStr
     : null;
 
   //Check wheter the given IP Address in the Field is valid
@@ -40,78 +42,53 @@ export default function Home() {
     return ip.match(/^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/);
   }
 
-  let netzAddressen: number[] = Array.from({ length: 16 }, (_, i) => i);
-  let broadcastAddressen: number[] = Array.from({ length: 16 }, (_, i) => i);
-  let cidrArray: number[] = Array.from({ length: 16 }, (_, i) => i);
+  const generate_networks = (start_ip: string, start_cidr: number) => {
+    let network_nodes: ReactNode[] = [];
+    let ip = start_ip;
 
-  //Get all nessesary Information about the given IP Address and Space
-  if (isValidIp(ipAddress)) {
-    const result = IPSubnetCalculator.calculateSubnetMask(ipAddress, cidr);
-
-    if (result) {
-      const { ipLowStr, ipHighStr, ipLow, ipHigh, prefixSize, prefixMaskStr } =
-        result;
-
-      let i;
-      let newIpHigh = result.ipLow;
-
-      for (i = 0; i < amountNetworks; i++) {
-        //Probably not needed as ip address have to be 0 at the end (most likely)
-        if (i === 0) newIpHigh = ipLow;
-        const hosts = networks[i].hosts;
-
-        //[DEBUG] Test output
-        console.log(
-          i,
-          ": Netz Addressen: ",
-          IPSubnetCalculator.toString(newIpHigh)
-        );
-        netzAddressen[i] = newIpHigh;
-
-        //yeah just dont ask anymore about this
-        if (hosts > 0 && hosts < 2) {
-          newIpHigh += 2;
-          cidrArray[i] = 31;
-        } else if (hosts > 1 && hosts < 3) {
-          newIpHigh += 4;
-          cidrArray[i] = 30;
-        } else if (hosts > 2 && hosts < 7) {
-          newIpHigh += 8;
-          cidrArray[i] = 29;
-        } else if (hosts > 6 && hosts < 15) {
-          newIpHigh += 16;
-          cidrArray[i] = 28;
-        } else if (hosts > 14 && hosts < 31) {
-          newIpHigh += 32;
-          cidrArray[i] = 27;
-        } else if (hosts > 30 && hosts < 63) {
-          newIpHigh += 64;
-          cidrArray[i] = 26;
-        } else if (hosts > 62 && hosts < 127) {
-          newIpHigh += 128;
-          cidrArray[i] = 25;
-        } else if (hosts > 126 && hosts < 255) {
-          newIpHigh += 256;
-          cidrArray[i] = 24;
-        } else if (hosts > 254 && hosts < 511) {
-          newIpHigh += 512;
-          cidrArray[i] = 23;
+    //Add edge case for CIDR 31/32
+    for (const net of networks) {
+      let net_cidr = 32;
+      while (net_cidr > 0) {
+        let hostResult = IPSubnetCalculator.calculateSubnetMask(ip, net_cidr);
+        if (!hostResult) break;
+        if (net.hosts <= hostResult.ipHigh - hostResult.ipLow - 1) {
+          break;
         }
-
-        //[DEBUG] Test output
-        console.log(
-          i,
-          ": Broadcast Address: ",
-          IPSubnetCalculator.toString(newIpHigh - 1)
-        );
-        broadcastAddressen[i] = newIpHigh - 1;
+        net_cidr--;
       }
-      console.log(newIpHigh, IPSubnetCalculator.toString(newIpHigh));
+
+      let network_node = (
+        <Network
+          key={net.id}
+          hosts={net.hosts}
+          onClose={() =>
+            setNetworks(networks.filter(({ id }) => net.id !== id))
+          }
+          onChangeHosts={(v) => {
+            setNetworks(
+              networks.map((network) => {
+                if (network.id === net.id) {
+                  return { hosts: v, id: network.id };
+                }
+                return network;
+              })
+            );
+          }}
+          cidr={net_cidr}
+          ip={ip}
+        />
+      );
+      network_nodes.push(network_node);
+      const next_result = IPSubnetCalculator.calculateSubnetMask(ip, net_cidr);
+      if (!next_result) break;
+      ip = IPSubnetCalculator.toString(next_result.ipHigh + 1);
     }
-  }
+    return network_nodes;
+  };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+    <main className="flex min-h-screen flex-col p-8">
       <div>
         <div>IP Address</div>
         <div className="flex items-center">
@@ -122,27 +99,11 @@ export default function Home() {
         <div>Subnetmask:</div>
         <div>{subnetmask}</div>
         <div className="border p-4 flex flex-col gap-4 rounded-xl">
-          {networks.map((network) => {
-            return (
-              <Network
-                onClose={() =>
-                  setNetworks(networks.filter(({ id }) => network.id !== id))
-                }
-                onChangeHosts={(v) => {
-                  setNetworks(
-                    networks.map((net) => {
-                      if (network.id === net.id) {
-                        return { hosts: v, id: net.id };
-                      }
-                      return net;
-                    })
-                  );
-                }}
-                hosts={network.hosts}
-                key={network.id}
-              />
-            );
-          })}
+          {ipAddress ? (
+            generate_networks(ipAddress, cidr)
+          ) : (
+            <div>Invalid IP Adress</div>
+          )}
           <button
             className="w-full border"
             onClick={() =>
@@ -151,84 +112,6 @@ export default function Home() {
           >
             Add Network
           </button>
-          {/*Array.from({ length: amountNetworks }).map((_, i) => {
-            return (
-              <div key={i}>
-                <div>Hosts: Netz {i + 1}</div>
-                <div>
-                  <NumberInput
-                    value={networks[i].number}
-                    onChange={(value) => {
-                      setNetworks(
-                        networks.map((net, index) => {
-                          if (index === i) {
-                            return { number: value };
-                          }
-                          return net;
-                        })
-                      );
-                    }}
-                  />
-                </div>
-              </div>
-            );
-          })*/}
-        </div>
-        <div>
-          <table>
-            <thead>
-              <tr>
-                <th>Network</th>
-                <th>Netz Address</th>
-                <th>CIDR</th>
-                <th>Broadcast Address</th>
-                <th>Nutzbare IP-Addressen</th>
-                <th>Anzahl Nutzbare IP-Addressen</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from({ length: amountNetworks }).map((_, i) => {
-                return (
-                  <tr key={i}>
-                    <td>{i + 1}</td>
-                    <td>{IPSubnetCalculator.toString(netzAddressen[i])}</td>
-                    <td>/{cidrArray[i]}</td>
-                    <td>
-                      {IPSubnetCalculator.toString(broadcastAddressen[i])}
-                    </td>
-                    <td>
-                      {isValidIp(
-                        IPSubnetCalculator.toString(netzAddressen[i])
-                      ) &&
-                      netzAddressen[i] > 0 &&
-                      isValidIp(
-                        IPSubnetCalculator.toString(broadcastAddressen[i])
-                      ) &&
-                      broadcastAddressen[i] > 0
-                        ? `${IPSubnetCalculator.toString(
-                            netzAddressen[i] + 1
-                          )}-${IPSubnetCalculator.toString(
-                            broadcastAddressen[i] - 1
-                          )}`
-                        : "Invalid IP"}
-                    </td>
-                    <td>
-                      {isValidIp(
-                        IPSubnetCalculator.toString(netzAddressen[i])
-                      ) &&
-                      netzAddressen[i] > 0 &&
-                      isValidIp(
-                        IPSubnetCalculator.toString(broadcastAddressen[i])
-                      ) &&
-                      broadcastAddressen[i] > 0
-                        ? broadcastAddressen[i] - netzAddressen[i] - 1
-                        : "Invalid IP"}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
         </div>
       </div>
     </main>
